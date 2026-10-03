@@ -26,6 +26,18 @@ shape-derivative (force/torque) formulas from Piyush Panchal's PhD thesis.
 * `problems/tp_vp.py` – transmission problem, vector potential: `solve`, `mst_*`, `bem_form`,
   `source_terms`, `shape_derivative`. `problems/sources.py` – `TorusCurrent`, `UniformField`.
 * `problems/matlab_ref.py` – loads `Export/export_tpvp.m` outputs and maps gypsilab dofs.
+* `fem/` – FEM layer for energy-density materials: `geometry` (gmsh shield +
+  conductors + Gauss spheres), `materials` (w(x, E) presets; define ONLY the energy
+  density – PDE, Jacobian, D = dw/dE, charge and stress all follow via ufl), `floating`
+  (fixed-charge conductors at floating potential, outer Newton on the nonlinear Q(V)
+  curve – the generalization of the thesis capacitance series), `force`
+  (`energy_fd_force`: fixed-charge virtual-work force, valid for ANY material;
+  `mst_force`: Maxwell stress on Gauss spheres, LINEAR homogeneous media ONLY).
+  IMPORTANT (verified numerically): in a nonlinear dielectric the fixed-charge force
+  has a nonlocal charge-redistribution term – no local surface traction reproduces
+  it (all candidates miss by >10% in a Kerr medium).  The energy route is the
+  reference; `mst_force` and `energy_fd_force` agree to ~discretization error for
+  linear materials.
 
 ## Invariants to check in every experiment
 
@@ -74,3 +86,5 @@ FEM cross-validation (`test_fem.py`) needs dolfinx + gmsh (no pip wheels; skip-i
 It solves the two-permeable-sphere problem independently with dolfinx (P2, Maxwell
 stress on Gauss spheres in the homogeneous matrix) and checks the BEM MST force and
 the body-restricted shape derivative (`body_translations`) against it.
+`test_fem_floating.py` tests the FEM layer itself: concentric capacitance
+(analytic), image-charge force (analytic), and the force-route agreement gates.

@@ -64,3 +64,13 @@ shape-derivative (force/torque) formulas from Piyush Panchal's PhD thesis.
 
     .venv-forces/bin/python -m pytest test/unit/forces -q
     FORCES_MATLAB_REF=/path/to/exports .venv-forces/bin/python -m pytest test/unit/forces/test_matlab_ref.py
+
+FEM cross-validation (`test_fem.py`) needs dolfinx + gmsh (no pip wheels; skip-if-missing elsewhere):
+
+    conda create -y -n forces-fem -c conda-forge python=3.12 fenics-dolfinx numpy scipy numba meshio pytest
+    ~/miniconda3/envs/forces-fem/bin/pip install --no-deps -e . gmsh jax
+    ~/miniconda3/envs/forces-fem/bin/python -m pytest test/unit/forces/test_fem.py
+
+It solves the two-permeable-sphere problem independently with dolfinx (P2, Maxwell
+stress on Gauss spheres in the homogeneous matrix) and checks the BEM MST force and
+the body-restricted shape derivative (`body_translations`) against it.

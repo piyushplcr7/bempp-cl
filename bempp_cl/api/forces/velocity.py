@@ -106,6 +106,38 @@ def translations():
     return VelocityFamily("trans", [(0,), (1,), (2,)])
 
 
+class BodyTranslations(VelocityFamily):
+    """Rigid translations restricted to a ball: the force on one body.
+
+    V_f = e_alpha on {‖x − center‖ < radius} and 0 elsewhere; DV = 0.  This is
+    the velocity of a multi-body configuration in which only one body is
+    displaced (the two-sphere force tests of the thesis code).  Array backends
+    only: the CUDA codegen knows the analytic cos/rot/trans kinds and cannot
+    splice the indicator mask.
+    """
+
+    def __init__(self, center, radius):
+        super().__init__("trans", [(0,), (1,), (2,)])
+        self.center = _np.asarray(center, dtype="float64")
+        self.radius = float(radius)
+
+    def _mask(self, xp, x):
+        d = xp.asarray(x)[..., None, :] - xp.asarray(self.center)
+        return xp.linalg.norm(d, axis=-1) < self.radius  # [..., 1]
+
+    def V(self, xp, x):
+        e = xp.asarray(_np.eye(3)[self.params[:, 0].astype(int)])  # [F, 3]
+        return self._mask(xp, x)[..., None] * e  # [..., F, 3]
+
+    def DV(self, xp, x):
+        return xp.zeros(x.shape[:-1] + (self.nfields, 3, 3))
+
+
+def body_translations(center, radius):
+    """Translations of the body occupying the ball ``(center, radius)``."""
+    return BodyTranslations(center, radius)
+
+
 def single_cos(a=1, b=1, c=1, alpha=0):
     """The single hard-coded cosine field of the plain CUDA variants."""
     return VelocityFamily("cos", [(a, b, c, alpha)])

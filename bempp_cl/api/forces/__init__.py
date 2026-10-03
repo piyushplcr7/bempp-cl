@@ -12,7 +12,7 @@ Quick start::
 """
 
 from .terms import BasisArg, Term, Form, arg, term, DV, nx  # noqa: F401
-from .velocity import VelocityFamily, cos_family, rotations, translations, single_cos  # noqa: F401
+from .velocity import VelocityFamily, cos_family, rotations, translations, body_translations, single_cos  # noqa: F401
 from .pairs import PairSet  # noqa: F401
 from .basis import ElementData, SpaceData  # noqa: F401
 from . import kernels  # noqa: F401
